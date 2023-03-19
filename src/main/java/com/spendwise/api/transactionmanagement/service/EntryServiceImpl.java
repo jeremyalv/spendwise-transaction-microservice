@@ -64,7 +64,7 @@ public class EntryServiceImpl implements EntryService {
 
         entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly
         entry.setType(EntryType.valueOf(request.getType()));
-        entry.setCreatedAt(request.getCreatedAt());
+        // TODO: Debug case CreatedAt increments by 1 day each time PUT request is sent
         // Updated At set to Now
         entry.setUpdatedAt(Instant.now());
         entry.setAmount(request.getAmount());
