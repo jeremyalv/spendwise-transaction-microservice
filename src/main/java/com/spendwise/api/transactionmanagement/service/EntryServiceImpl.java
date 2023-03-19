@@ -54,7 +54,7 @@ public class EntryServiceImpl implements EntryService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .build();
-
+        System.out.println(entry.toString());
         return entryRepository.save(entry);
     }
 

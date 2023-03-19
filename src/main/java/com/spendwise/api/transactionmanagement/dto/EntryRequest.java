@@ -19,10 +19,6 @@ public class EntryRequest {
     private Long creatorId;
     @JsonProperty("type")
     private String type;
-    @JsonProperty("created_at")
-    private Instant createdAt;
-    @JsonProperty("updated_at")
-    private Instant updatedAt;
     @JsonProperty("amount")
     private Long amount;
     @JsonProperty("title")
