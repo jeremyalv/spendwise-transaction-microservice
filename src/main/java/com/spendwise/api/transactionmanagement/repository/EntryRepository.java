@@ -8,9 +8,5 @@ import java.util.Optional;
 
 
 public interface EntryRepository extends JpaRepository<Entry, Long> {
-//    @NonNull
-//    List<Entry> findAll();
-//    @NonNull
-//    Optional<Entry> findById(@NonNull Long id);
-//    void deleteById(@NonNull Long id);
+
 }

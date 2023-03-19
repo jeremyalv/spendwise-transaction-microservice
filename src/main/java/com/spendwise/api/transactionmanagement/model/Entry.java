@@ -13,17 +13,26 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "entry")
 public class Entry {
     @Id
     @GeneratedValue
-    private Long id;
+    @Column(name = "entry_id")
+    private Long entryId;
     // TODO: To be converted to foreign key to User.ID
+    @Column(name = "creator_id")
     private Long creatorId;
     @Enumerated(EnumType.STRING)
+    @Column(name = "type")
     private EntryType type;
+    @Column(name = "created_at")
     private Instant createdAt;
+    @Column(name = "updated_at")
     private Instant updatedAt;
+    @Column(name = "amount")
     private Long amount;
+    @Column(name = "title")
     private String title;
+    @Column(name = "description")
     private String description;
 }

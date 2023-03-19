@@ -17,6 +17,13 @@ import java.util.List;
 public class EntryController {
     private final EntryService entryService;
 
+    @GetMapping("/all")
+    public ResponseEntity<List<Entry>> getAllEntries() {
+        List<Entry> response = null;
+        response = entryService.findAllEntries();
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{userId}/all")
     // TODO: Add preAuthorize when auth is finished
     public ResponseEntity<List<Entry>> getAllEntriesFromUser(@PathVariable Long userId) {
@@ -49,7 +56,7 @@ public class EntryController {
     @DeleteMapping("/delete/{entryId}")
     public ResponseEntity<String> deleteEntry(@PathVariable Long entryId) {
         entryService.delete(entryId);
-        String msg = "Deleted medicine with id " + entryId;
+        String msg = "Deleted entry with id " + entryId;
         return ResponseEntity.ok(msg);
     }
 
