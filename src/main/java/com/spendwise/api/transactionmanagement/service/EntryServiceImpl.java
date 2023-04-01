@@ -54,12 +54,16 @@ public class EntryServiceImpl implements EntryService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .build();
-        System.out.println(entry.toString());
+
         return entryRepository.save(entry);
     }
 
     @Override
     public Entry update(Long id, EntryRequest request) {
+        if (isEntryDoesNotExist(id)) {
+            throw new EntryDoesNotExistException(id);
+        }
+
         Entry entry = findById(id);
 
         entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly
