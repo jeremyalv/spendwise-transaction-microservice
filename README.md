@@ -26,7 +26,5 @@ Stopping PostgreSQL instance with Docker:
 - [ ] Category should be pre-decided into a `Category` table, but for now we'll use raw strings as Catgory identifier
 - [ ] Error handling, bad request etc (refer tutorial 5)
   - [ ] Get all entry from a nonexistent user
-  - [ ] Delete a nonexistent entry
-  - 
 - [ ] Create unit tests
 

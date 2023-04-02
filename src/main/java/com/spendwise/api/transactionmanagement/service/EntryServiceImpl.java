@@ -91,4 +91,6 @@ public class EntryServiceImpl implements EntryService {
     private boolean isEntryDoesNotExist(Long id) {
         return entryRepository.findById(id).isEmpty();
     }
+
+    // TODO add isUserDoesNotExist which checks the UserRepository from Auth service
 }
