@@ -100,6 +100,29 @@ public class EntryControllerTest {
                 .andExpect(handler().methodName("addEntry"))
                 .andExpect(jsonPath("$.title").value(entry.getTitle()));
         verify(service, atLeastOnce()).create(any(EntryRequest.class));
+    }
 
+    @Test
+    void testPutEntry() throws Exception {
+        when(service.update(any(Long.class), any(EntryRequest.class))).thenReturn(entry);
+
+        mvc.perform(put("/api/transactions/update/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Util.mapToJson(bodyContent))
+                .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("updateEntry"))
+                .andExpect(jsonPath("$.title").value(entry.getTitle()));
+        verify(service, atLeastOnce()).update(any(Long.class), any(EntryRequest.class));
+    }
+
+    @Test
+    void testDeleteEntry() throws Exception {
+        mvc.perform(delete("/api/transactions/delete/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("deleteEntry"));
+        verify(service, atLeastOnce()).delete(any(Long.class));
     }
 }
