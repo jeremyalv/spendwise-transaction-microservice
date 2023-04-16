@@ -18,15 +18,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
 
 @WebMvcTest(controllers = EntryController.class)
 @AutoConfigureMockMvc(addFilters = false) // Todo delete when integrate with Auth
@@ -108,8 +106,7 @@ public class EntryControllerTest {
         when(service.create(any(EntryRequest.class))).thenReturn(entry);
 
         mvc.perform(post("/api/transactions/create").contentType(MediaType.APPLICATION_JSON)
-                .content(Util.mapToJson(bodyContent))
-                .with(csrf()))
+                .content(Util.mapToJson(bodyContent)))
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("addEntry"))
                 .andExpect(jsonPath("$.title").value(entry.getTitle()));
@@ -122,8 +119,7 @@ public class EntryControllerTest {
 
         mvc.perform(put("/api/transactions/update/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(Util.mapToJson(bodyContent))
-                .with(csrf()))
+                .content(Util.mapToJson(bodyContent)))
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("updateEntry"))
                 .andExpect(jsonPath("$.title").value(entry.getTitle()));
@@ -133,8 +129,7 @@ public class EntryControllerTest {
     @Test
     void testDeleteEntry() throws Exception {
         mvc.perform(delete("/api/transactions/delete/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(csrf()))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("deleteEntry"));
         verify(service, atLeastOnce()).delete(any(Long.class));
