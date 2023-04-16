@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +29,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 
 @WebMvcTest(controllers = EntryController.class)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false) // Todo delete when integrate with Auth
 public class EntryControllerTest {
     @Autowired
     private MockMvc mvc;
@@ -72,7 +73,7 @@ public class EntryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("getAllEntries"))
                 .andExpect(jsonPath("$[0].title").value(entry.getTitle()));
-        verify(service, atLeastOnce()).findById(any(Long.class));
+        verify(service, atLeastOnce()).findAllEntries();
     }
 
     @Test
@@ -86,6 +87,19 @@ public class EntryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("getAllEntriesFromUser"))
                 .andExpect(jsonPath("$[0].title").value(entry.getTitle()));
+        verify(service, atLeastOnce()).findAllByCreatorId(any(Long.class));
+    }
+
+    @Test
+    void testGetEntryById() throws Exception {
+        when(service.findById(any(Long.class)))
+                .thenReturn(entry);
+
+        mvc.perform(get("/api/transactions/1").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getEntry"))
+                .andExpect(jsonPath("$.entryId").value(entry.getEntryId()));
+
         verify(service, atLeastOnce()).findById(any(Long.class));
     }
 
