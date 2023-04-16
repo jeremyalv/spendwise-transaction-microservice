@@ -8,9 +8,12 @@ import com.spendwise.api.transactionmanagement.dto.EntryRequest;
 import com.spendwise.api.transactionmanagement.repository.EntryRepository;
 import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistException;
 
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,28 +132,63 @@ class EntryServiceImplTest {
 
     @Test
     void whenCreateEntryShouldReturnTheCreatedEntry() {
+        when(repository.save(any(Entry.class)))
+                .thenAnswer(invocation -> {
+                    Entry entry = invocation.getArgument(0, Entry.class);
+                    entry.setEntryId(1L);
 
+                    return entry;
+                });
+
+        Entry result = service.create(createRequest);
+        verify(repository, atLeastOnce()).save(any(Entry.class));
+
+        // Custom assertion ignoring the time fields
+        assertThat(result).usingRecursiveComparison()
+                .ignoringFields("createdAt", "updatedAt")
+                .isEqualTo(entry);
     }
 
     @Test
     void whenUpdateEntryAndFoundShouldReturnTheUpdatedEntry() {
+        when(repository.findById(any(Long.class)))
+                .thenReturn(Optional.of(entry));
+        when(repository.save(any(Entry.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0, Entry.class)
+                );
 
+        Entry result = service.update(1L, updateRequest);
+        verify(repository, atLeastOnce()).save(any(Entry.class));
+        // Custom assertion ignoring the time fields
+        assertThat(result).usingRecursiveComparison()
+                .ignoringFields("createdAt", "updatedAt")
+                .isEqualTo(entry);
     }
 
     @Test
     void whenUpdateEntryAndNotFoundShouldThrowException() {
-
+        when(repository.findById(any(Long.class)))
+                .thenReturn(Optional.empty());
+        Assertions.assertThrows(EntryDoesNotExistException.class, () -> {
+            service.update(1L, createRequest);
+        });
     }
 
     @Test
     void whenDeleteEntryAndFoundShouldCallDeleteByIdOnRepo() {
+        when(repository.findById(any(Long.class)))
+                .thenReturn(Optional.of(entry));
 
+        service.delete(0L);
+        verify(repository, atLeastOnce()).deleteById(any(Long.class));
     }
 
     @Test
     void whenDeleteEntryAndNotFoundShouldThrowException() {
-
+        when(repository.findById(any(Long.class)))
+                .thenReturn(Optional.empty());
+        Assertions.assertThrows(EntryDoesNotExistException.class, () -> {
+            service.delete(1L);
+        });
     }
-
-
 }
