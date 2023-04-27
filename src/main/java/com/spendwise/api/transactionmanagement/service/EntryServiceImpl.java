@@ -45,7 +45,7 @@ public class EntryServiceImpl implements EntryService {
 
     @Override
         public Entry create(EntryRequest request) {
-        Entry entry = Entry.builder()
+        var entry = Entry.builder()
                 .creatorId(request.getCreatorId()) // TODO: To get from user object directly
                 .type(EntryType.valueOf(request.getType()))
                 .createdAt(Instant.now())
@@ -64,7 +64,7 @@ public class EntryServiceImpl implements EntryService {
             throw new EntryDoesNotExistException(id);
         }
 
-        Entry entry = findById(id);
+        var entry = findById(id);
 
         entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly
         entry.setType(EntryType.valueOf(request.getType()));

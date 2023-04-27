@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = EntryController.class)
 @AutoConfigureMockMvc(addFilters = false) // Todo delete when integrate with Auth
-public class EntryControllerTest {
+class EntryControllerTest {
     @Autowired
     private MockMvc mvc;
 

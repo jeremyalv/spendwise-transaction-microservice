@@ -1,16 +1,16 @@
 package com.spendwise.api.transactionmanagement.model;
 
 public enum ExpenseCategory implements EntryTypeCategory {
-    FnB,
-    Transportation,
-    Household_Needs,
-    Shopping,
-    Health,
-    Travel,
-    Entertainment,
-    Education,
-    Donations,
-    Investments,
-    Others,
-    None
+    FNB,
+    TRANSPORTATION,
+    HOUSEHOLD_NEEDS,
+    SHOPPING,
+    HEALTH,
+    TRAVEL,
+    ENTERTAINMENT,
+    EDUCATION,
+    DONATIONS,
+    INVESTMENTS,
+    OTHERS,
+    NONE
 }
