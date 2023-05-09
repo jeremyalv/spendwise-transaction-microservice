@@ -54,17 +54,17 @@ sonarqube {
 	}
 }
 
-tasks.test {
+test {
 	useJUnitPlatform()
-	finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
+	finalizedBy(jacocoTestReport) // report is always generated after tests run
 }
-tasks.jacocoTestReport {
+jacocoTestReport {
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
 			fileTree(dir: it, exclude: ['**/*Application**'])
 		}))
 	}
-	dependsOn(tasks.test) // tests are required to run before generating the report
+	dependsOn(test) // tests are required to run before generating the report
 	reports {
 		xml.enabled true
 		xml.destination file("${buildDir}/reports/jacoco.xml")
