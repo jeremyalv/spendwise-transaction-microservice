@@ -65,10 +65,10 @@ jacocoTestReport {
 		}))
 	}
 	dependsOn test // tests are required to run before generating the report
-	reports {
-		xml.required.set(true)
-		xml.destination file("${buildDir}/reports/jacoco.xml")
-	}
+//	reports {
+//		xml.required.set(true)
+//		xml.destination file("${buildDir}/reports/jacoco.xml")
+//	}
 }
 
 test.finalizedBy jacocoTestReport
