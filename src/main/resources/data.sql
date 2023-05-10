@@ -1,1 +1,0 @@
-insert into category values ('EXPENSE', 'FNB', true, 'FNB', 'NONE');
