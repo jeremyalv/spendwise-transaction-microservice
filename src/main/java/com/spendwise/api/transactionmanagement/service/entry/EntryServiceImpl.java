@@ -1,7 +1,6 @@
 package com.spendwise.api.transactionmanagement.service.entry;
 
 import com.spendwise.api.transactionmanagement.exceptions.CategoryDoesNotExistException;
-import com.spendwise.api.transactionmanagement.exceptions.EHCDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.category.Category;
 import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
@@ -25,7 +24,7 @@ import java.util.Optional;
 public class EntryServiceImpl implements EntryService {
     private final EntryRepository entryRepository;
     private final CategoryRepository categoryRepository;
-    private final EntryHasCategoryRepository entryHasCategoryRepository;
+    private final EntryHasCategoryRepository ehcRepository;
 
     @Override
     public List<Entry> findAllEntries() {
@@ -34,10 +33,9 @@ public class EntryServiceImpl implements EntryService {
 
     @Override
     public List<Entry> findAllByCreatorId(Long creatorId) {
-        return entryRepository.findAll()
-                .stream().filter(entry -> entry.getCreatorId().equals(creatorId))
-                .toList();
+        return entryRepository.findByCreatorId(creatorId);
     }
+
     @Override
     public Entry findById(Long id) {
         Optional<Entry> optionalEntry = entryRepository.findById(id);
@@ -50,30 +48,6 @@ public class EntryServiceImpl implements EntryService {
         }
     }
 
-    @Override
-    public Category findCategoryByName(String name) {
-        Optional<Category> optionalCategory = categoryRepository.findByName(name);
-
-        if (optionalCategory.isPresent()) {
-            return optionalCategory.get();
-        }
-        else {
-            throw new CategoryDoesNotExistException(name);
-        }
-    }
-
-//    TODO not refactored yet
-    @Override
-    public EntryHasCategory findEHCByEntryId(Long entryId) {
-        Optional<EntryHasCategory> optionalEHC = entryHasCategoryRepository.findById(entryId);
-
-        if (optionalEHC.isPresent()) {
-            return optionalEHC.get();
-        }
-        else {
-            throw new EHCDoesNotExistException(entryId);
-        }
-    }
 
     @Override
         public Entry create(EntryRequest request) {
@@ -94,18 +68,18 @@ public class EntryServiceImpl implements EntryService {
                 .categoryId(category.getCategoryId())
                 .build();
 
-        entryHasCategoryRepository.save(entryHasCategory);
+        // TODO resolve at Controller level entryHasCategoryRepository.save(entryHasCategory);
 
         return entryRepository.save(entry);
     }
 
     @Override
-    public Entry update(Long id, EntryRequest request) {
-        if (isEntryDoesNotExist(id)) {
-            throw new EntryDoesNotExistException(id);
+    public Entry update(Long entryId, EntryRequest request) {
+        if (isEntryDoesNotExist(entryId)) {
+            throw new EntryDoesNotExistException(entryId);
         }
 
-        var entry = findById(id);
+        var entry = findById(entryId);
 
         entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly
         entry.setType(EntryTypeEnum.valueOf(request.getEntryType()));
@@ -116,9 +90,10 @@ public class EntryServiceImpl implements EntryService {
         entry.setTitle(request.getTitle());
         entry.setDescription(request.getDescription());
 
+        // TODO resolve in Controller level
         Category category = findCategoryByName(request.getCategoryName());
 
-        var entryHasCategory = findEHCByEntryId(id);
+        var entryHasCategory = ehcRepository.findById(entryId);
 
         entryHasCategory.setCategoryId(category.getCategoryId());
 
@@ -133,27 +108,26 @@ public class EntryServiceImpl implements EntryService {
             throw new EntryDoesNotExistException(id);
         }
 
-        deleteEHC(id);
+        // TODO resolve in Controller? deleteEHC(id);
         entryRepository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEHC(Long entryId) {
-        if (isEHCDoesNotExist(entryId)) {
-            throw new EHCDoesNotExistException(entryId);
-        }
-
-        entryHasCategoryRepository.deleteById(entryId);
     }
 
     private boolean isEntryDoesNotExist(Long id) {
         return entryRepository.findById(id).isEmpty();
     }
 
-    private boolean isEHCDoesNotExist(Long entryId) {
-        return entryHasCategoryRepository.findById(entryId).isEmpty();
+    private Category findCategoryByName(String name) {
+        Optional<Category> optionalCategory = categoryRepository.findByName(name);
+
+        if (optionalCategory.isPresent()) {
+            return optionalCategory.get();
+        }
+        else {
+            throw new CategoryDoesNotExistException(name);
+        }
     }
+
+
 
     // TODO add isUserDoesNotExist which checks the UserRepository from Auth service
 }

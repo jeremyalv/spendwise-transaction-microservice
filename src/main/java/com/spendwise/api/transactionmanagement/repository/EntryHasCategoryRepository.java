@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface EntryHasCategoryRepository extends JpaRepository<EntryHasCategory, Long> {
+    List<EntryHasCategory> findAllByEntryId(Long entryId);
     List<EntryHasCategory> findAllByCategoryId(Long categoryId);
 }

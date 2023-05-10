@@ -1,13 +1,9 @@
 package com.spendwise.api.transactionmanagement.service.category;
 
 import com.spendwise.api.transactionmanagement.exceptions.CategoryDoesNotExistException;
-import com.spendwise.api.transactionmanagement.exceptions.EHCDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.category.Category;
-import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
-import com.spendwise.api.transactionmanagement.repository.EntryHasCategoryRepository;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
@@ -22,5 +18,35 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryServiceImpl {
+public class CategoryServiceImpl implements CategoryService {
+    private final CategoryRepository categoryRepository;
+
+    @Override
+    public List<Category> findAllCategories() {
+        return categoryRepository.findAll();
+    }
+
+    @Override
+    public Category findById(Long categoryId) {
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+
+        if (optionalCategory.isPresent()) {
+            return optionalCategory.get();
+        }
+        else {
+            throw new CategoryDoesNotExistException(categoryId);
+        }
+    }
+
+    @Override
+    public Category findByName(String name) {
+        Optional<Category> optionalCategory = categoryRepository.findByName(name);
+
+        if (optionalCategory.isPresent()) {
+            return optionalCategory.get();
+        }
+        else {
+            throw new CategoryDoesNotExistException(name);
+        }
+    }
 }
