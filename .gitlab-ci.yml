@@ -18,7 +18,7 @@ stages:
   - test
   - publish
   - deploy
-#  - sonarqube
+  - sonarqube
 
 Build:
   stage: build
@@ -96,18 +96,18 @@ Deploy:
     - master
 
 
-#sonarqube-check:
-#  stage: sonarqube
-#  image: gradle:jdk17-alpine
-#  variables:
-#    GIT_DEPTH: "0" # Fetch all branches of the project
-#  cache:
-#    paths:
-#      - .sonar/cache
-#  before_script:
-#    - chmod +x ./gradlew
-#  script:
-#    - ./gradlew sonarqube -Dsonar.projectKey=$SONAR_KEY -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
-#  allow_failure: true
-#  only:
-#    - master
+sonarqube-check:
+  stage: sonarqube
+  image: gradle:7.4-jdk11-alpine
+  variables:
+    GIT_DEPTH: "0" # Fetch all branches of the project
+  cache:
+    paths:
+      - .sonar/cache
+  before_script:
+    - chmod +x ./gradlew
+  script:
+    - ./gradlew sonarqube -Dsonar.projectKey=$SONAR_KEY -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
+  allow_failure: true
+  only:
+    - master
