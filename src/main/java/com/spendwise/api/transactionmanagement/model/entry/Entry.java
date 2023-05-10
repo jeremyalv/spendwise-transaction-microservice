@@ -1,4 +1,4 @@
-package com.spendwise.api.transactionmanagement.model;
+package com.spendwise.api.transactionmanagement.model.entry;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,12 +19,8 @@ public class Entry {
     @GeneratedValue
     @Column(name = "entry_id")
     private Long entryId;
-    // TODO: To be converted to foreign key to User.ID
     @Column(name = "creator_id")
     private Long creatorId;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type")
-    private EntryType type;
     @Column(name = "created_at")
     private Instant createdAt;
     @Column(name = "updated_at")
@@ -35,4 +31,8 @@ public class Entry {
     private String title;
     @Column(name = "description")
     private String description;
+
+    @Column(name = "type")
+    @Enumerated(EnumType.STRING)
+    private EntryTypeEnum type;
 }

@@ -1,4 +1,4 @@
-package com.spendwise.api.transactionmanagement.model;
+package com.spendwise.api.transactionmanagement.model.category;
 
 public enum ExpenseCategory implements EntryTypeCategory {
     FNB,

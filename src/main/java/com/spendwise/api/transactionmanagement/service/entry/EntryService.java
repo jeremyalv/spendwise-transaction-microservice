@@ -1,7 +1,9 @@
-package com.spendwise.api.transactionmanagement.service;
+package com.spendwise.api.transactionmanagement.service.entry;
 
-import com.spendwise.api.transactionmanagement.model.Entry;
+import com.spendwise.api.transactionmanagement.model.entry.Entry;
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
+import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
+import com.spendwise.api.transactionmanagement.model.category.Category;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -1,11 +1,10 @@
 package com.spendwise.api.transactionmanagement.controller;
 
 import com.spendwise.api.transactionmanagement.Util;
-import com.spendwise.api.transactionmanagement.controller.EntryController;
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
-import com.spendwise.api.transactionmanagement.model.Entry;
-import com.spendwise.api.transactionmanagement.model.EntryType;
-import com.spendwise.api.transactionmanagement.service.EntryServiceImpl;
+import com.spendwise.api.transactionmanagement.model.entry.Entry;
+import com.spendwise.api.transactionmanagement.model.entry.EntryTypeEnum;
+import com.spendwise.api.transactionmanagement.service.entry.EntryServiceImpl;
 
 import java.time.Instant;
 import java.util.List;
@@ -42,7 +41,7 @@ class EntryControllerTest {
     void setUp() {
         entry = Entry.builder()
                 .creatorId(1L)
-                .type(EntryType.EXPENSE)
+                .type(EntryTypeEnum.EXPENSE)
                 .createdAt(Instant.parse("2022-12-03T10:15:30.00Z"))
                 .updatedAt(Instant.parse("2022-12-03T10:15:30.00Z"))
                 .amount(45000L)

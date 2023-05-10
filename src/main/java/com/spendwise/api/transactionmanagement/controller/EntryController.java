@@ -1,8 +1,8 @@
 package com.spendwise.api.transactionmanagement.controller;
 
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
-import com.spendwise.api.transactionmanagement.model.Entry;
-import com.spendwise.api.transactionmanagement.service.EntryService;
+import com.spendwise.api.transactionmanagement.model.entry.Entry;
+import com.spendwise.api.transactionmanagement.service.entry.EntryService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
