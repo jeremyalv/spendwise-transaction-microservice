@@ -2,7 +2,7 @@ package com.spendwise.api.transactionmanagement.service.ehc;
 
 import com.spendwise.api.transactionmanagement.dto.EHCRequest;
 import com.spendwise.api.transactionmanagement.exceptions.CategoryDoesNotExistException;
-import com.spendwise.api.transactionmanagement.exceptions.EHCDoesNotExistException;
+import com.spendwise.api.transactionmanagement.exceptions.EntryHasCategoryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.category.Category;
 import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class EHCServiceImpl implements EHCService {
+public class EntryHasCategoryServiceImpl implements EntryHasCategoryService {
     private final EntryHasCategoryRepository ehcRepository;
     private final EntryRepository entryRepository;
     private final CategoryRepository categoryRepository;
@@ -74,25 +74,40 @@ public class EHCServiceImpl implements EHCService {
             return optionalEHC.get();
         }
         else {
-            throw new EHCDoesNotExistException(entryId);
+            throw new EntryHasCategoryDoesNotExistException(entryId);
         }
     }
 
     @Override
     public EntryHasCategory create(EHCRequest request) {
-        return null; // TODO
+        EntryHasCategory ehc = EntryHasCategory
+                .builder()
+                .entryId(request.getEntryId())
+                .categoryId(request.getCategoryId())
+                .build();
+
+        return ehcRepository.save(ehc);
     }
 
     @Override
     public EntryHasCategory update(Long entryId, EHCRequest request) {
-        return null; // TODO
+        if (isEHCDoesNotExist(entryId)) {
+            throw new EntryHasCategoryDoesNotExistException(entryId);
+        }
+
+        EntryHasCategory ehc = findByEntryId(entryId);
+
+        ehc.setEntryId(request.getEntryId());
+        ehc.setCategoryId(request.getEntryId());
+
+        return ehcRepository.save(ehc);
     }
 
     @Override
     @Transactional
     public void delete(Long entryId) {
         if (isEHCDoesNotExist(entryId)) {
-            throw new EHCDoesNotExistException(entryId);
+            throw new EntryHasCategoryDoesNotExistException(entryId);
         }
 
         ehcRepository.deleteById(entryId);

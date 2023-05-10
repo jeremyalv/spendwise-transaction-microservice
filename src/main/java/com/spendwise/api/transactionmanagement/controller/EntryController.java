@@ -2,6 +2,8 @@ package com.spendwise.api.transactionmanagement.controller;
 
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
+import com.spendwise.api.transactionmanagement.service.category.CategoryService;
+import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
 import com.spendwise.api.transactionmanagement.service.entry.EntryService;
 
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EntryController {
     private final EntryService entryService;
+    private final CategoryService categoryService;
+    private final EntryHasCategoryService ehcService;
 
     @GetMapping("/all")
     public ResponseEntity<List<Entry>> getAllEntries() {
@@ -40,9 +44,10 @@ public class EntryController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Entry> addEntry(@RequestBody EntryRequest request) {
+    public ResponseEntity<Entry> createEntry(@RequestBody EntryRequest request) {
         Entry response = null;
         response = entryService.create(request);
+        entryService.createEHC(ehcService, response, request);
         return ResponseEntity.ok(response);
     }
 
@@ -55,11 +60,11 @@ public class EntryController {
 
     @DeleteMapping("/delete/{entryId}")
     public ResponseEntity<String> deleteEntry(@PathVariable Long entryId) {
+        ehcService.delete(entryId);
         entryService.delete(entryId);
         String msg = "Deleted entry with id " + entryId;
         return ResponseEntity.ok(msg);
     }
-
 }
 
 

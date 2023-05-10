@@ -2,8 +2,11 @@ package com.spendwise.api.transactionmanagement.controller;
 
 import com.spendwise.api.transactionmanagement.Util;
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
+import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
 import com.spendwise.api.transactionmanagement.model.entry.EntryTypeEnum;
+import com.spendwise.api.transactionmanagement.service.category.CategoryServiceImpl;
+import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryServiceImpl;
 import com.spendwise.api.transactionmanagement.service.entry.EntryServiceImpl;
 
 import java.time.Instant;
@@ -32,7 +35,11 @@ class EntryControllerTest {
     private MockMvc mvc;
 
     @MockBean
-    private EntryServiceImpl service;
+    private EntryServiceImpl entryService;
+    @MockBean
+    private CategoryServiceImpl categoryService;
+    @MockBean
+    private EntryHasCategoryServiceImpl ehcService;
 
     Entry entry;
     Object bodyContent;
@@ -63,33 +70,33 @@ class EntryControllerTest {
     void testGetAllEntries() throws Exception {
         List<Entry> allEntries = List.of(entry);
 
-        when(service.findAllEntries()).thenReturn(allEntries);
+        when(entryService.findAllEntries()).thenReturn(allEntries);
 
         mvc.perform(get("/api/transactions/all")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("getAllEntries"))
                 .andExpect(jsonPath("$[0].title").value(entry.getTitle()));
-        verify(service, atLeastOnce()).findAllEntries();
+        verify(entryService, atLeastOnce()).findAllEntries();
     }
 
     @Test
     void testGetAllEntriesFromUser() throws Exception {
         List<Entry> allEntries = List.of(entry);
 
-        when(service.findAllByCreatorId(any(Long.class))).thenReturn(allEntries);
+        when(entryService.findAllByCreatorId(any(Long.class))).thenReturn(allEntries);
 
         mvc.perform(get("/api/transactions/1/all")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("getAllEntriesFromUser"))
                 .andExpect(jsonPath("$[0].title").value(entry.getTitle()));
-        verify(service, atLeastOnce()).findAllByCreatorId(any(Long.class));
+        verify(entryService, atLeastOnce()).findAllByCreatorId(any(Long.class));
     }
 
     @Test
     void testGetEntryById() throws Exception {
-        when(service.findById(any(Long.class)))
+        when(entryService.findById(any(Long.class)))
                 .thenReturn(entry);
 
         mvc.perform(get("/api/transactions/1").contentType(MediaType.APPLICATION_JSON))
@@ -97,24 +104,24 @@ class EntryControllerTest {
                 .andExpect(handler().methodName("getEntry"))
                 .andExpect(jsonPath("$.entryId").value(entry.getEntryId()));
 
-        verify(service, atLeastOnce()).findById(any(Long.class));
+        verify(entryService, atLeastOnce()).findById(any(Long.class));
     }
 
     @Test
-    void testAddEntry() throws Exception {
-        when(service.create(any(EntryRequest.class))).thenReturn(entry);
+    void testCreateEntry() throws Exception {
+        when(entryService.create(any(EntryRequest.class))).thenReturn(entry);
 
         mvc.perform(post("/api/transactions/create").contentType(MediaType.APPLICATION_JSON)
                 .content(Util.mapToJson(bodyContent)))
                 .andExpect(status().isOk())
-                .andExpect(handler().methodName("addEntry"))
+                .andExpect(handler().methodName("createEntry"))
                 .andExpect(jsonPath("$.title").value(entry.getTitle()));
-        verify(service, atLeastOnce()).create(any(EntryRequest.class));
+        verify(entryService, atLeastOnce()).create(any(EntryRequest.class));
     }
 
     @Test
     void testPutEntry() throws Exception {
-        when(service.update(any(Long.class), any(EntryRequest.class))).thenReturn(entry);
+        when(entryService.update(any(Long.class), any(EntryRequest.class))).thenReturn(entry);
 
         mvc.perform(put("/api/transactions/update/1")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -122,7 +129,7 @@ class EntryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("updateEntry"))
                 .andExpect(jsonPath("$.title").value(entry.getTitle()));
-        verify(service, atLeastOnce()).update(any(Long.class), any(EntryRequest.class));
+        verify(entryService, atLeastOnce()).update(any(Long.class), any(EntryRequest.class));
     }
 
     @Test
@@ -131,6 +138,6 @@ class EntryControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("deleteEntry"));
-        verify(service, atLeastOnce()).delete(any(Long.class));
+        verify(entryService, atLeastOnce()).delete(any(Long.class));
     }
 }

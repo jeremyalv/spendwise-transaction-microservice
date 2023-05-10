@@ -1,7 +1,10 @@
 package com.spendwise.api.transactionmanagement.service.category;
 
+import com.spendwise.api.transactionmanagement.dto.CategoryRequest;
 import com.spendwise.api.transactionmanagement.exceptions.CategoryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.category.Category;
+import com.spendwise.api.transactionmanagement.model.category.ExpenseCategory;
+import com.spendwise.api.transactionmanagement.model.category.IncomeCategory;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +51,27 @@ public class CategoryServiceImpl implements CategoryService {
         else {
             throw new CategoryDoesNotExistException(name);
         }
+    }
+
+    @Override
+    public Category create(CategoryRequest request) {
+        Category category = Category.builder()
+                .entryType(EntryTypeEnum.valueOf(request.getEntryType()))
+                .name(request.getName())
+                .isExpense(request.getIsExpense())
+                .expenseCategory(ExpenseCategory.valueOf(request.getExpenseCategory()))
+                .incomeCategory(IncomeCategory.valueOf(request.getIncomeCategory()))
+                .build();
+
+        return categoryRepository.save(category);
+    }
+
+    @Override
+    public void delete(Long categoryId) {
+        if (categoryRepository.findById(categoryId).isEmpty()) {
+            throw new CategoryDoesNotExistException(categoryId);
+        }
+
+        categoryRepository.deleteById(categoryId);
     }
 }
