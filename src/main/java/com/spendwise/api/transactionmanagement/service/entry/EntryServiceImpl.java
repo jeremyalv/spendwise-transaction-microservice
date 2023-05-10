@@ -8,7 +8,6 @@ import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
 import com.spendwise.api.transactionmanagement.repository.EntryHasCategoryRepository;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
-import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryServiceImpl;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
