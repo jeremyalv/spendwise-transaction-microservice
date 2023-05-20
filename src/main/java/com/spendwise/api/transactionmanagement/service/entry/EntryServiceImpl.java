@@ -8,6 +8,7 @@ import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
 import com.spendwise.api.transactionmanagement.repository.EntryHasCategoryRepository;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
+import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryServiceImpl;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -78,7 +79,6 @@ public class EntryServiceImpl implements EntryService {
 
         entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly
         entry.setEntryType(EntryTypeEnum.valueOf(request.getEntryType()));
-        // TODO: Debug case CreatedAt increments by 1 day each time PUT request is sent
         entry.setUpdatedAt(Instant.now());
         entry.setAmount(request.getAmount());
         entry.setTitle(request.getTitle());
@@ -123,6 +123,16 @@ public class EntryServiceImpl implements EntryService {
         }
     }
 
+    public EHCRequest createEHCRequest(Entry entry, Category category) {
+        EHCRequest ehcRequest = new EHCRequest();
+
+        ehcRequest.setEntryId(entry.getEntryId());
+        ehcRequest.setCategoryId(category.getCategoryId());
+
+        return ehcRequest;
+    }
+
+    @Override
     public EntryHasCategory createEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request) {
         Category category = findCategoryByName(request.getCategoryName());
 
@@ -131,13 +141,13 @@ public class EntryServiceImpl implements EntryService {
         return ehcService.create(ehcRequest);
     }
 
-    public EHCRequest createEHCRequest(Entry entry, Category category) {
-        EHCRequest ehcRequest = new EHCRequest();
+    @Override
+    public EntryHasCategory updateEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request) {
+        Category category = findCategoryByName(request.getCategoryName());
 
-        ehcRequest.setEntryId(entry.getEntryId());
-        ehcRequest.setCategoryId(category.getCategoryId());
+        EHCRequest ehcRequest = createEHCRequest(entry, category);
 
-        return ehcRequest;
+        return ehcService.update(entry.getEntryId(), ehcRequest);
     }
 
     // TODO add isUserDoesNotExist which checks the UserRepository from Auth service

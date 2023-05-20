@@ -98,7 +98,7 @@ public class EntryHasCategoryServiceImpl implements EntryHasCategoryService {
         EntryHasCategory ehc = findByEntryId(entryId);
 
         ehc.setEntryId(request.getEntryId());
-        ehc.setCategoryId(request.getEntryId());
+        ehc.setCategoryId(request.getCategoryId());
 
         return ehcRepository.save(ehc);
     }

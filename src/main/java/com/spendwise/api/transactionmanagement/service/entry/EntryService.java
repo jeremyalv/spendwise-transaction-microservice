@@ -16,4 +16,5 @@ public interface EntryService {
     Entry update(Long id, EntryRequest request);
     void delete(Long id);
     EntryHasCategory createEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
+    EntryHasCategory updateEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
 }
