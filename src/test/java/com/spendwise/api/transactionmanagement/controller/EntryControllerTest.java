@@ -48,7 +48,7 @@ class EntryControllerTest {
     void setUp() {
         entry = Entry.builder()
                 .creatorId(1L)
-                .type(EntryTypeEnum.EXPENSE)
+                .entryType(EntryTypeEnum.EXPENSE)
                 .createdAt(Instant.parse("2022-12-03T10:15:30.00Z"))
                 .updatedAt(Instant.parse("2022-12-03T10:15:30.00Z"))
                 .amount(45000L)

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntryController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">transaction-management</a> &gt; <a href="index.source.html" class="el_package">com.spendwise.api.transactionmanagement.controller</a> &gt; <span class="el_source">EntryController.java</span></div><h1>EntryController.java</h1><pre class="source lang-java linenums">package com.spendwise.api.transactionmanagement.controller;
+
+import com.spendwise.api.transactionmanagement.dto.EntryRequest;
+import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistException;
+import com.spendwise.api.transactionmanagement.model.Entry;
+import com.spendwise.api.transactionmanagement.service.EntryService;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+// TODO import spring security for next sprint
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/transactions&quot;)
+<span class="fc" id="L18">@RequiredArgsConstructor</span>
+public class EntryController {
+    private final EntryService entryService;
+
+    @GetMapping(&quot;/all&quot;)
+    public ResponseEntity&lt;?&gt; getAllEntries() {
+        try {
+<span class="fc" id="L25">            List&lt;Entry&gt; response = null;</span>
+<span class="fc" id="L26">            response = entryService.findAllEntries();</span>
+<span class="fc" id="L27">            return ResponseEntity.ok(response);</span>
+        }
+<span class="nc" id="L29">        catch (EntryDoesNotExistException e) {</span>
+<span class="nc" id="L30">            String msg = &quot;An error occurred: &quot; + e.getMessage();</span>
+<span class="nc" id="L31">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);</span>
+        }
+    }
+
+    @GetMapping(&quot;/{userId}/all&quot;)
+    // TODO: Add preAuthorize when auth is finished
+    public ResponseEntity&lt;?&gt; getAllEntriesFromUser(@PathVariable Long userId) {
+        try {
+<span class="fc" id="L39">            List&lt;Entry&gt; response = null;</span>
+<span class="fc" id="L40">            response = entryService.findAllByCreatorId(userId);</span>
+<span class="fc" id="L41">            return ResponseEntity.ok(response);</span>
+        }
+<span class="nc" id="L43">        catch (EntryDoesNotExistException e) {</span>
+<span class="nc" id="L44">            String msg = &quot;An error occurred: &quot; + e.getMessage();</span>
+<span class="nc" id="L45">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);</span>
+        }
+    }
+
+    @GetMapping(&quot;/{entryId}&quot;)
+    public ResponseEntity&lt;?&gt; getEntry(@PathVariable Long entryId) {
+        try {
+<span class="fc" id="L52">            Entry response = null;</span>
+<span class="fc" id="L53">            response = entryService.findById(entryId);</span>
+<span class="fc" id="L54">            return ResponseEntity.ok(response);</span>
+        }
+<span class="nc" id="L56">        catch (EntryDoesNotExistException e) {</span>
+<span class="nc" id="L57">            String msg = &quot;An error occurred: &quot; + e.getMessage();</span>
+<span class="nc" id="L58">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);</span>
+        }
+
+    }
+
+    @PostMapping(&quot;/create&quot;)
+    public ResponseEntity&lt;Entry&gt; addEntry(@RequestBody EntryRequest request) {
+<span class="fc" id="L65">        Entry response = null;</span>
+<span class="fc" id="L66">        response = entryService.create(request);</span>
+<span class="fc" id="L67">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PutMapping(&quot;/update/{entryId}&quot;)
+    public ResponseEntity&lt;?&gt; updateEntry(@PathVariable Long entryId, @RequestBody EntryRequest request) {
+        try {
+<span class="fc" id="L73">            Entry response = null;</span>
+<span class="fc" id="L74">            response = entryService.update(entryId, request);</span>
+<span class="fc" id="L75">            return ResponseEntity.ok(response);</span>
+        }
+<span class="nc" id="L77">        catch (EntryDoesNotExistException e) {</span>
+<span class="nc" id="L78">            String msg = &quot;An error occurred: &quot; + e.getMessage();</span>
+<span class="nc" id="L79">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);</span>
+        }
+    }
+
+    @DeleteMapping(&quot;/delete/{entryId}&quot;)
+    public ResponseEntity&lt;String&gt; deleteEntry(@PathVariable Long entryId) {
+        try {
+<span class="fc" id="L86">            entryService.delete(entryId);</span>
+<span class="fc" id="L87">            String msg = &quot;Deleted entry with id &quot; + entryId;</span>
+<span class="fc" id="L88">            return ResponseEntity.ok(msg);</span>
+        }
+<span class="nc" id="L90">        catch (EntryDoesNotExistException e) {</span>
+<span class="nc" id="L91">            String msg = &quot;An error occurred: &quot; + e.getMessage();</span>
+<span class="nc" id="L92">            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);</span>
+        }
+
+
+    }
+
+}
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

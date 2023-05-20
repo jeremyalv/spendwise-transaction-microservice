@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntryServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">transaction-management</a> &gt; <a href="index.source.html" class="el_package">com.spendwise.api.transactionmanagement.service</a> &gt; <span class="el_source">EntryServiceImpl.java</span></div><h1>EntryServiceImpl.java</h1><pre class="source lang-java linenums">package com.spendwise.api.transactionmanagement.service;
+
+import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+import com.spendwise.api.transactionmanagement.model.Entry;
+import com.spendwise.api.transactionmanagement.model.EntryType;
+import com.spendwise.api.transactionmanagement.repository.EntryRepository;
+import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistException;
+import com.spendwise.api.transactionmanagement.dto.EntryRequest;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+<span class="fc" id="L19">@RequiredArgsConstructor</span>
+public class EntryServiceImpl implements EntryService {
+    private final EntryRepository entryRepository;
+
+    @Override
+    public List&lt;Entry&gt; findAllEntries() {
+<span class="fc" id="L25">        return entryRepository.findAll();</span>
+    }
+
+    @Override
+    public List&lt;Entry&gt; findAllByCreatorId(Long creatorId) {
+<span class="fc" id="L30">        return entryRepository.findAll()</span>
+<span class="fc" id="L31">                .stream().filter(entry -&gt; entry.getCreatorId().equals(creatorId))</span>
+<span class="fc" id="L32">                .collect(Collectors.toList());</span>
+    }
+    @Override
+    public Entry findById(Long id) {
+<span class="fc" id="L36">        Optional&lt;Entry&gt; optionalEntry = entryRepository.findById(id);</span>
+
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (optionalEntry.isPresent()) {</span>
+<span class="fc" id="L39">            return optionalEntry.get();</span>
+        }
+        else {
+<span class="fc" id="L42">            throw new EntryDoesNotExistException(id);</span>
+        }
+    }
+
+    @Override
+        public Entry create(EntryRequest request) {
+<span class="fc" id="L48">        Entry entry = Entry.builder()</span>
+<span class="fc" id="L49">                .creatorId(request.getCreatorId()) // TODO: To get from user object directly</span>
+<span class="fc" id="L50">                .type(EntryType.valueOf(request.getType()))</span>
+<span class="fc" id="L51">                .createdAt(Instant.now())</span>
+<span class="fc" id="L52">                .updatedAt(Instant.now())</span>
+<span class="fc" id="L53">                .amount(request.getAmount())</span>
+<span class="fc" id="L54">                .title(request.getTitle())</span>
+<span class="fc" id="L55">                .description(request.getDescription())</span>
+<span class="fc" id="L56">                .build();</span>
+
+<span class="fc" id="L58">        return entryRepository.save(entry);</span>
+    }
+
+    @Override
+    public Entry update(Long id, EntryRequest request) {
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (isEntryDoesNotExist(id)) {</span>
+<span class="fc" id="L64">            throw new EntryDoesNotExistException(id);</span>
+        }
+
+<span class="fc" id="L67">        Entry entry = findById(id);</span>
+
+<span class="fc" id="L69">        entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly</span>
+<span class="fc" id="L70">        entry.setType(EntryType.valueOf(request.getType()));</span>
+        // TODO: Debug case CreatedAt increments by 1 day each time PUT request is sent
+        // Updated At set to Now
+<span class="fc" id="L73">        entry.setUpdatedAt(Instant.now());</span>
+<span class="fc" id="L74">        entry.setAmount(request.getAmount());</span>
+<span class="fc" id="L75">        entry.setTitle(request.getTitle());</span>
+<span class="fc" id="L76">        entry.setDescription(request.getDescription());</span>
+
+<span class="fc" id="L78">        return entryRepository.save(entry);</span>
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (isEntryDoesNotExist(id)) {</span>
+<span class="fc" id="L85">            throw new EntryDoesNotExistException(id);</span>
+        }
+
+<span class="fc" id="L88">        entryRepository.deleteById(id);</span>
+<span class="fc" id="L89">    }</span>
+
+    private boolean isEntryDoesNotExist(Long id) {
+<span class="fc" id="L92">        return entryRepository.findById(id).isEmpty();</span>
+    }
+
+    // TODO add isUserDoesNotExist which checks the UserRepository from Auth service
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -124,7 +124,7 @@ class EntryServiceImplTest {
                 .amount(60000L)
                 .title("Starbucks Latte")
                 .description("Nice coffee")
-                .type(EntryTypeEnum.EXPENSE)
+                .entryType(EntryTypeEnum.EXPENSE)
                 .build();
 
         newEntry = Entry.builder()
@@ -135,7 +135,7 @@ class EntryServiceImplTest {
                 .amount(2000000L)
                 .title("Plane to Bali")
                 .description("Fun!")
-                .type(EntryTypeEnum.EXPENSE)
+                .entryType(EntryTypeEnum.EXPENSE)
                 .build();
 
         travelEntry = Entry.builder()
@@ -146,7 +146,7 @@ class EntryServiceImplTest {
                 .amount(9000000L)
                 .title("Plane to Japan")
                 .description("Excited!")
-                .type(EntryTypeEnum.EXPENSE)
+                .entryType(EntryTypeEnum.EXPENSE)
                 .build();
 
         EHCFnB = EntryHasCategory.builder()
