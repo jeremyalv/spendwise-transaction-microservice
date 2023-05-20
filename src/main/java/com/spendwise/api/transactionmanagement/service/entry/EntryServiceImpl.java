@@ -57,7 +57,7 @@ public class EntryServiceImpl implements EntryService {
     public Entry create(EntryRequest request) {
         Entry entry = Entry.builder()
                 .creatorId(request.getCreatorId()) // TODO: To get from user object directly
-                .type(EntryTypeEnum.valueOf(request.getEntryType()))
+                .entryType(EntryTypeEnum.valueOf(request.getEntryType()))
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .amount(request.getAmount())
@@ -77,7 +77,7 @@ public class EntryServiceImpl implements EntryService {
         Entry entry = findById(entryId);
 
         entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly
-        entry.setType(EntryTypeEnum.valueOf(request.getEntryType()));
+        entry.setEntryType(EntryTypeEnum.valueOf(request.getEntryType()));
         // TODO: Debug case CreatedAt increments by 1 day each time PUT request is sent
         entry.setUpdatedAt(Instant.now());
         entry.setAmount(request.getAmount());

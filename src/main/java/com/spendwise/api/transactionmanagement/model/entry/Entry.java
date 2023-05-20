@@ -32,7 +32,7 @@ public class Entry {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "type")
+    @Column(name = "entry_type")
     @Enumerated(EnumType.STRING)
-    private EntryTypeEnum type;
+    private EntryTypeEnum entryType;
 }
