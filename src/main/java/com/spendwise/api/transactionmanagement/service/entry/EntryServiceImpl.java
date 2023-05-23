@@ -9,7 +9,7 @@ import com.spendwise.api.transactionmanagement.model.analytics.ExpenseRequest;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
 import com.spendwise.api.transactionmanagement.repository.EntryHasCategoryRepository;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
-import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryServiceImpl;
+import com.spendwise.api.transactionmanagement.service.AuthService;
 
 
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
@@ -18,17 +18,19 @@ import com.spendwise.api.transactionmanagement.repository.EntryRepository;
 import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
 
-import org.springframework.stereotype.Service;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
+
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class EntryServiceImpl implements EntryService {
 
     private final RestTemplate restTemplate;
 
-    private String analyticsCreateExpenseURL = "http://localhost:8082/api/v1/analytics/expense/add-dummy";
+    private String analyticsCreateExpenseURL = "http://localhost:8082/api/v1/analytics/expense/add";
     private String analyticsCreateIncomeURL = "http://localhost:8082/api/v1/analytics/income/add";
 
     @Override
@@ -167,28 +169,50 @@ public class EntryServiceImpl implements EntryService {
     // TODO add isUserDoesNotExist which checks the UserRepository from Auth service
 
     @Override
-    public String createAnalyticsEntry(Entry entry) {
+    public Map<String, Object> createAnalyticsEntry(Entry entry) {
         boolean isExpense = entry.getEntryType().toString() == "EXPENSE" ? true : false;
         Category category = getCategoryFromEntry(entry);
 
         String url = isExpense ? analyticsCreateExpenseURL : analyticsCreateIncomeURL;
 
-        ExpenseRequest payload = ExpenseRequest.builder()
-                .userId(entry.getCreatorId())
-                .instant(entry.getCreatedAt())
-                .category(category.getName())
-                .expenseAmount(entry.getAmount())
-                .build();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", entry.getCreatorId());
+        payload.put("instant", entry.getCreatedAt());
+        payload.put("category", entry.getCategoryName());
+        payload.put("expenseAmount", entry.getAmount());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<ExpenseRequest> request = new HttpEntity<>(payload, headers);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
-        String response = restTemplate.postForObject(url, request, String.class);
+        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 
-        return response;
+        return payload;
     }
+//    @Override
+//    public String createAnalyticsEntry(Entry entry) {
+//        boolean isExpense = entry.getEntryType().toString() == "EXPENSE" ? true : false;
+//        Category category = getCategoryFromEntry(entry);
+//
+//        String url = isExpense ? analyticsCreateExpenseURL : analyticsCreateIncomeURL;
+//
+//        ExpenseRequest payload = ExpenseRequest.builder()
+//                .userId(entry.getCreatorId())
+//                .instant(entry.getCreatedAt())
+//                .category(category.getName())
+//                .expenseAmount(entry.getAmount())
+//                .build();
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        HttpEntity<ExpenseRequest> request = new HttpEntity<>(payload, headers);
+//
+//        String response = restTemplate.postForObject(url, request, String.class);
+//
+//        return response;
+//    }
 
     private Category getCategoryFromEntry(Entry entry) {
         Optional<EntryHasCategory> ehcOpt = ehcRepository.findByEntryId(entry.getEntryId());

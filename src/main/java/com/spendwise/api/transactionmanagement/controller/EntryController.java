@@ -3,11 +3,17 @@ package com.spendwise.api.transactionmanagement.controller;
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
 import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
+import com.spendwise.api.transactionmanagement.service.AuthService;
 import com.spendwise.api.transactionmanagement.service.category.CategoryService;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
 import com.spendwise.api.transactionmanagement.service.entry.EntryService;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 // TODO import spring security for next sprint
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +27,7 @@ public class EntryController {
     private final EntryService entryService;
     private final CategoryService categoryService;
     private final EntryHasCategoryService ehcService;
+    private final AuthService authService;
 
     @GetMapping("/all")
     public ResponseEntity<List<Entry>> getAllEntries() {
@@ -31,8 +38,15 @@ public class EntryController {
 
     @GetMapping("/{userId}/all")
     // TODO: Add preAuthorize when auth is finished
-    public ResponseEntity<List<Entry>> getAllEntriesFromUser(@PathVariable Long userId) {
+    public ResponseEntity<List<Entry>> getAllEntriesFromUser(HttpServletRequest servletRequest, @PathVariable Long userId) {
+        ResponseEntity<String> verifyResponse = authService.verify(servletRequest);
+
+        if (verifyResponse.getStatusCode() != HttpStatusCode.valueOf(200)) {
+            return ResponseEntity.status(403).body(null);
+        }
+
         List<Entry> response = null;
+
         response = entryService.findAllByCreatorId(userId);
         return ResponseEntity.ok(response);
     }
@@ -80,6 +94,8 @@ public class EntryController {
         EntryHasCategory response = ehcService.findByEntryId(entryId);
         return ResponseEntity.ok(response);
     }
+
+
 }
 
 
