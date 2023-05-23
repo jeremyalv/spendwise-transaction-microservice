@@ -51,7 +51,7 @@ class EntryControllerTest {
                 .entryType(EntryTypeEnum.EXPENSE)
                 .createdAt(Instant.parse("2022-12-03T10:15:30.00Z"))
                 .updatedAt(Instant.parse("2022-12-03T10:15:30.00Z"))
-                .amount(45000L)
+                .amount(45000D)
                 .title("Starbucks Latte")
                 .description("My morning coffee")
                 .build();
@@ -60,7 +60,7 @@ class EntryControllerTest {
           public final String type = "EXPENSE";
           public final Instant createdAt = Instant.parse("2022-12-03T10:15:30.00Z");
           public final Instant updatedAt = Instant.parse("2022-12-03T10:15:30.00Z");
-          public Long amount = 45000L;
+          public Double amount = 45000D;
           public String title = "Starbucks Latte";
           public String description = "My morning coffee";
         };

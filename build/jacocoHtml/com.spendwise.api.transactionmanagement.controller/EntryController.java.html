@@ -49,35 +49,36 @@ public class EntryController {
 <span class="fc" id="L49">        Entry response = null;</span>
 <span class="fc" id="L50">        response = entryService.create(request);</span>
 <span class="fc" id="L51">        entryService.createEHC(ehcService, response, request);</span>
-<span class="fc" id="L52">        return ResponseEntity.ok(response);</span>
+<span class="fc" id="L52">        entryService.createAnalyticsEntry(response);</span>
+<span class="fc" id="L53">        return ResponseEntity.ok(response);</span>
     }
 
     @PutMapping(&quot;/update/{entryId}&quot;)
     public ResponseEntity&lt;Entry&gt; updateEntry(@PathVariable Long entryId, @RequestBody EntryRequest request) {
-<span class="fc" id="L57">        Entry response = null;</span>
-<span class="fc" id="L58">        response = entryService.update(entryId, request);</span>
-<span class="fc" id="L59">        entryService.updateEHC(ehcService, response, request);</span>
-<span class="fc" id="L60">        return ResponseEntity.ok(response);</span>
+<span class="fc" id="L58">        Entry response = null;</span>
+<span class="fc" id="L59">        response = entryService.update(entryId, request);</span>
+<span class="fc" id="L60">        entryService.updateEHC(ehcService, response, request);</span>
+<span class="fc" id="L61">        return ResponseEntity.ok(response);</span>
     }
 
     @DeleteMapping(&quot;/delete/{entryId}&quot;)
     public ResponseEntity&lt;String&gt; deleteEntry(@PathVariable Long entryId) {
-<span class="fc" id="L65">        ehcService.delete(entryId);</span>
-<span class="fc" id="L66">        entryService.delete(entryId);</span>
-<span class="fc" id="L67">        String msg = &quot;Deleted entry with id &quot; + entryId;</span>
-<span class="fc" id="L68">        return ResponseEntity.ok(msg);</span>
+<span class="fc" id="L66">        ehcService.delete(entryId);</span>
+<span class="fc" id="L67">        entryService.delete(entryId);</span>
+<span class="fc" id="L68">        String msg = &quot;Deleted entry with id &quot; + entryId;</span>
+<span class="fc" id="L69">        return ResponseEntity.ok(msg);</span>
     }
 
     @GetMapping(&quot;/ehc/all&quot;)
     public ResponseEntity&lt;List&lt;EntryHasCategory&gt;&gt; getAllEHC() {
-<span class="nc" id="L73">        List&lt;EntryHasCategory&gt; response = ehcService.findAllEHC();</span>
-<span class="nc" id="L74">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L74">        List&lt;EntryHasCategory&gt; response = ehcService.findAllEHC();</span>
+<span class="nc" id="L75">        return ResponseEntity.ok(response);</span>
     }
 
     @GetMapping(&quot;/ehc/{entryId}&quot;)
     public ResponseEntity&lt;EntryHasCategory&gt; getEHCByID(@PathVariable Long entryId) {
-<span class="nc" id="L79">        EntryHasCategory response = ehcService.findByEntryId(entryId);</span>
-<span class="nc" id="L80">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L80">        EntryHasCategory response = ehcService.findByEntryId(entryId);</span>
+<span class="nc" id="L81">        return ResponseEntity.ok(response);</span>
     }
 }
 
