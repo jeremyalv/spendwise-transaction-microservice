@@ -20,5 +20,7 @@ public interface EntryService {
     EntryHasCategory createEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
     EntryHasCategory updateEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
 
-    Map<String, Object> createAnalyticsEntry(Entry entryPayload);
+    Map<String, Object> createAnalyticsExpense(Entry entryPayload);
+    void deleteAnalyticsExpense(Long id);
+    Map<String, Object> updateAnalyticsExpense(Entry oldEntry, Entry newEntry);
 }

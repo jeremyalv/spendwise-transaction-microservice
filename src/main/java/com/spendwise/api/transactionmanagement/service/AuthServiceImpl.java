@@ -38,6 +38,7 @@ public class AuthServiceImpl implements  AuthService {
         }
         catch (HttpClientErrorException e) {
             // Based on Auth service response
+            // TODO '==' may cause bugs
             if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
                 return ResponseEntity.status(403).body("Access not allowed");
             }
