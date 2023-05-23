@@ -26,7 +26,7 @@ public class Entry {
     @Column(name = "updated_at")
     private Instant updatedAt;
     @Column(name = "amount")
-    private Long amount;
+    private Double amount;
     @Column(name = "title")
     private String title;
     @Column(name = "description")
@@ -35,4 +35,7 @@ public class Entry {
     @Column(name = "entry_type")
     @Enumerated(EnumType.STRING)
     private EntryTypeEnum entryType;
+
+    @Column(name = "category_name")
+    private String categoryName;
 }

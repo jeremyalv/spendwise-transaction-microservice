@@ -49,6 +49,7 @@ public class EntryController {
         Entry response = null;
         response = entryService.create(request);
         entryService.createEHC(ehcService, response, request);
+        entryService.createAnalyticsEntry(response);
         return ResponseEntity.ok(response);
     }
 

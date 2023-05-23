@@ -5,19 +5,26 @@ import com.spendwise.api.transactionmanagement.exceptions.CategoryDoesNotExistEx
 import com.spendwise.api.transactionmanagement.exceptions.EntryHasCategoryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.category.Category;
 import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
+import com.spendwise.api.transactionmanagement.model.analytics.ExpenseRequest;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
 import com.spendwise.api.transactionmanagement.repository.EntryHasCategoryRepository;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryServiceImpl;
-import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+
 
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
 import com.spendwise.api.transactionmanagement.model.entry.EntryTypeEnum;
 import com.spendwise.api.transactionmanagement.repository.EntryRepository;
 import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
+
+import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.util.List;
@@ -30,6 +37,11 @@ public class EntryServiceImpl implements EntryService {
     private final EntryRepository entryRepository;
     private final CategoryRepository categoryRepository;
     private final EntryHasCategoryRepository ehcRepository;
+
+    private final RestTemplate restTemplate;
+
+    private String analyticsCreateExpenseURL = "http://localhost:8082/api/v1/analytics/expense/add-dummy";
+    private String analyticsCreateIncomeURL = "http://localhost:8082/api/v1/analytics/income/add";
 
     @Override
     public List<Entry> findAllEntries() {
@@ -59,6 +71,7 @@ public class EntryServiceImpl implements EntryService {
         Entry entry = Entry.builder()
                 .creatorId(request.getCreatorId()) // TODO: To get from user object directly
                 .entryType(EntryTypeEnum.valueOf(request.getEntryType()))
+                .categoryName(request.getCategoryName())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .amount(request.getAmount())
@@ -79,6 +92,7 @@ public class EntryServiceImpl implements EntryService {
 
         entry.setCreatorId(request.getCreatorId()); // TODO: To get from user object directly
         entry.setEntryType(EntryTypeEnum.valueOf(request.getEntryType()));
+        entry.setCategoryName(request.getCategoryName());
         entry.setUpdatedAt(Instant.now());
         entry.setAmount(request.getAmount());
         entry.setTitle(request.getTitle());
@@ -151,4 +165,46 @@ public class EntryServiceImpl implements EntryService {
     }
 
     // TODO add isUserDoesNotExist which checks the UserRepository from Auth service
+
+    @Override
+    public String createAnalyticsEntry(Entry entry) {
+        boolean isExpense = entry.getEntryType().toString() == "EXPENSE" ? true : false;
+        Category category = getCategoryFromEntry(entry);
+
+        String url = isExpense ? analyticsCreateExpenseURL : analyticsCreateIncomeURL;
+
+        ExpenseRequest payload = ExpenseRequest.builder()
+                .userId(entry.getCreatorId())
+                .instant(entry.getCreatedAt())
+                .category(category.getName())
+                .expenseAmount(entry.getAmount())
+                .build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<ExpenseRequest> request = new HttpEntity<>(payload, headers);
+
+        String response = restTemplate.postForObject(url, request, String.class);
+
+        return response;
+    }
+
+    private Category getCategoryFromEntry(Entry entry) {
+        Optional<EntryHasCategory> ehcOpt = ehcRepository.findByEntryId(entry.getEntryId());
+        if (!ehcOpt.isPresent()) {
+            throw new EntryHasCategoryDoesNotExistException(entry.getEntryId());
+        }
+
+        EntryHasCategory ehc = ehcOpt.get();
+
+        Optional<Category> categoryOpt = categoryRepository.findById(ehc.getCategoryId());
+        if (!categoryOpt.isPresent()) {
+            throw new CategoryDoesNotExistException(ehc.getCategoryId());
+        }
+
+        Category category = categoryOpt.get();
+
+        return category;
+    }
 }

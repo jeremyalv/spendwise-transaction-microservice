@@ -17,4 +17,6 @@ public interface EntryService {
     void delete(Long id);
     EntryHasCategory createEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
     EntryHasCategory updateEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
+
+    String createAnalyticsEntry(Entry entryPayload);
 }
