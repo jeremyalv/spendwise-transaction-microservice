@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EntryHasCategoryRepository extends JpaRepository<EntryHasCategory, Long> {
-    List<EntryHasCategory> findAllByEntryId(Long entryId);
+    // Each Entry can only have 1 Category
+    Optional<EntryHasCategory> findByEntryId(Long entryId);
     List<EntryHasCategory> findAllByCategoryId(Long categoryId);
 }

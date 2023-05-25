@@ -16,7 +16,7 @@ public class EntryRequest {
     @JsonProperty("creator_id")
     private Long creatorId;
     @JsonProperty("amount")
-    private Long amount;
+    private Double amount;
     @JsonProperty("title")
     private String title;
     @JsonProperty("description")
