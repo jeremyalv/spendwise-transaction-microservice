@@ -5,11 +5,9 @@ import com.spendwise.api.transactionmanagement.exceptions.CategoryDoesNotExistEx
 import com.spendwise.api.transactionmanagement.exceptions.EntryHasCategoryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.category.Category;
 import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
-import com.spendwise.api.transactionmanagement.model.analytics.ExpenseRequest;
 import com.spendwise.api.transactionmanagement.repository.CategoryRepository;
 import com.spendwise.api.transactionmanagement.repository.EntryHasCategoryRepository;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
-import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryServiceImpl;
 
 
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
@@ -18,17 +16,18 @@ import com.spendwise.api.transactionmanagement.repository.EntryRepository;
 import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
 
-import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
+
 
 @Service
 @RequiredArgsConstructor
@@ -40,8 +39,8 @@ public class EntryServiceImpl implements EntryService {
 
     private final RestTemplate restTemplate;
 
-    private String analyticsCreateExpenseURL = "http://localhost:8082/api/v1/analytics/expense/add-dummy";
-    private String analyticsCreateIncomeURL = "http://localhost:8082/api/v1/analytics/income/add";
+    private String analyticsExpenseURL = "http://localhost:8082/api/v1/analytics/expense";
+    private String notificationsURL = "http://localhost:8084/api/v1/notifications";
 
     @Override
     public List<Entry> findAllEntries() {
@@ -68,6 +67,12 @@ public class EntryServiceImpl implements EntryService {
 
     @Override
     public Entry create(EntryRequest request) {
+        boolean categoryExists = isCategoryExists(request.getCategoryName());
+
+        if (categoryExists == false) {
+            throw new CategoryDoesNotExistException(request.getCategoryName());
+        }
+
         Entry entry = Entry.builder()
                 .creatorId(request.getCreatorId()) // TODO: To get from user object directly
                 .entryType(EntryTypeEnum.valueOf(request.getEntryType()))
@@ -86,6 +91,12 @@ public class EntryServiceImpl implements EntryService {
     public Entry update(Long entryId, EntryRequest request) {
         if (isEntryDoesNotExist(entryId)) {
             throw new EntryDoesNotExistException(entryId);
+        }
+
+        boolean categoryExists = isCategoryExists(request.getCategoryName());
+
+        if (categoryExists == false) {
+            throw new CategoryDoesNotExistException(request.getCategoryName());
         }
 
         Entry entry = findById(entryId);
@@ -109,10 +120,6 @@ public class EntryServiceImpl implements EntryService {
         }
 
         entryRepository.deleteById(id);
-    }
-
-    private boolean isEntryDoesNotExist(Long id) {
-        return entryRepository.findById(id).isEmpty();
     }
 
     public Category findCategoryByName(String name) {
@@ -167,27 +174,119 @@ public class EntryServiceImpl implements EntryService {
     // TODO add isUserDoesNotExist which checks the UserRepository from Auth service
 
     @Override
-    public String createAnalyticsEntry(Entry entry) {
-        boolean isExpense = entry.getEntryType().toString() == "EXPENSE" ? true : false;
-        Category category = getCategoryFromEntry(entry);
+    public Map<String, Object> createAnalyticsExpense(Entry entry) {
+        String url = analyticsExpenseURL + "/add";
 
-        String url = isExpense ? analyticsCreateExpenseURL : analyticsCreateIncomeURL;
+        HttpEntity<Map<String, Object>> request = buildAnalyticsHttpEntity(entry);
 
-        ExpenseRequest payload = ExpenseRequest.builder()
-                .userId(entry.getCreatorId())
-                .instant(entry.getCreatedAt())
-                .category(category.getName())
-                .expenseAmount(entry.getAmount())
-                .build();
+        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+        return request.getBody();
+    }
+
+    @Override
+    public void deleteAnalyticsExpense(Long id) {
+        String url = analyticsExpenseURL + "/delete";
+        Entry entry = findById(id);
+
+        HttpEntity<Map<String, Object>> request = buildAnalyticsHttpEntity(entry);
+
+        restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
+    }
+
+    @Override
+    public Map<String, Object> updateAnalyticsExpense(Entry oldEntry, Entry newEntry) {
+        Long oldEntryId = oldEntry.getEntryId();
+
+        deleteAnalyticsExpense(oldEntryId);
+
+        Map<String, Object> result = createAnalyticsExpense(newEntry);
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> createNotification(Entry entry, String type) {
+        String url = notificationsURL
+                + String.format("/%d/create", entry.getCreatorId());
+
+        HttpEntity<Map<String, Object>> request = buildNotificationsHttpEntry(entry, type);
+
+        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+        return request.getBody();
+    }
+
+    private HttpEntity<Map<String, Object>> buildAnalyticsHttpEntity(Entry entry) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", entry.getCreatorId());
+        payload.put("instant", entry.getUpdatedAt());
+        payload.put("category", entry.getCategoryName());
+        payload.put("expenseAmount", entry.getAmount());
+
+        return new HttpEntity<>(payload, headers);
+    }
+
+    private HttpEntity<Map<String, Object>> buildNotificationsHttpEntry(Entry entry, String type) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("user_id", entry.getCreatorId());
+        payload.put("type", "REGULAR");
+        payload.put("message", String.format(
+                "%s '%s' have been %sd",
+                entry.getEntryType().toString().toLowerCase(),
+                entry.getTitle().toLowerCase(),
+                type
+                ));
+
+        return new HttpEntity<>(payload, headers);
+    }
+
+    @Override
+    public Map<String, Object> createNotificationDirectly(Long uid, String message) {
+        String url = notificationsURL
+                + String.format("/%d/create", uid);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<ExpenseRequest> request = new HttpEntity<>(payload, headers);
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("user_id", uid);
+        payload.put("type", "REGULAR");
+        payload.put("message", message);
 
-        String response = restTemplate.postForObject(url, request, String.class);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
-        return response;
+        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+        return request.getBody();
+    }
+
+    private boolean isCategoryExists(Entry entry) {
+        String categoryName = entry.getCategoryName();
+
+        Optional<Category> categoryOptional = categoryRepository.findByName(categoryName);
+
+        if (categoryOptional.isEmpty()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isCategoryExists(String name) {
+        Optional<Category> categoryOptional = categoryRepository.findByName(name);
+
+        if (categoryOptional.isEmpty()) {
+            return false;
+        }
+
+        return true;
     }
 
     private Category getCategoryFromEntry(Entry entry) {
@@ -206,5 +305,9 @@ public class EntryServiceImpl implements EntryService {
         Category category = categoryOpt.get();
 
         return category;
+    }
+
+    private boolean isEntryDoesNotExist(Long id) {
+        return entryRepository.findById(id).isEmpty();
     }
 }

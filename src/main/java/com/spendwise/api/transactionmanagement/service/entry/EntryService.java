@@ -7,6 +7,8 @@ import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryServi
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+
 @Service
 public interface EntryService {
     List<Entry> findAllEntries();
@@ -18,5 +20,9 @@ public interface EntryService {
     EntryHasCategory createEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
     EntryHasCategory updateEHC(EntryHasCategoryService ehcService, Entry entry, EntryRequest request);
 
-    String createAnalyticsEntry(Entry entryPayload);
+    Map<String, Object> createAnalyticsExpense(Entry entryPayload);
+    void deleteAnalyticsExpense(Long id);
+    Map<String, Object> updateAnalyticsExpense(Entry oldEntry, Entry newEntry);
+    Map<String, Object> createNotification(Entry entry, String type);
+    Map<String, Object> createNotificationDirectly(Long uid, String message);
 }
