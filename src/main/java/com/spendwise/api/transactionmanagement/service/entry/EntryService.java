@@ -23,4 +23,6 @@ public interface EntryService {
     Map<String, Object> createAnalyticsExpense(Entry entryPayload);
     void deleteAnalyticsExpense(Long id);
     Map<String, Object> updateAnalyticsExpense(Entry oldEntry, Entry newEntry);
+    Map<String, Object> createNotification(Entry entry, String type);
+    Map<String, Object> createNotificationDirectly(Long uid, String message);
 }

@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntryController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">transaction-management</a> &gt; <a href="index.source.html" class="el_package">com.spendwise.api.transactionmanagement.controller</a> &gt; <span class="el_source">EntryController.java</span></div><h1>EntryController.java</h1><pre class="source lang-java linenums">package com.spendwise.api.transactionmanagement.controller;
 
 import com.spendwise.api.transactionmanagement.dto.EntryRequest;
+import com.spendwise.api.transactionmanagement.exceptions.CategoryDoesNotExistException;
+import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistException;
+import com.spendwise.api.transactionmanagement.exceptions.EntryHasCategoryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
+import com.spendwise.api.transactionmanagement.service.auth.AuthService;
 import com.spendwise.api.transactionmanagement.service.category.CategoryService;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
 import com.spendwise.api.transactionmanagement.service.entry.EntryService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 // TODO import spring security for next sprint
 import org.springframework.web.bind.annotation.*;
@@ -16,69 +22,131 @@ import java.util.List;
 
 @RestController
 @RequestMapping(&quot;/api/v1/transactions&quot;)
-<span class="fc" id="L19">@RequiredArgsConstructor</span>
+<span class="fc" id="L25">@RequiredArgsConstructor</span>
 public class EntryController {
     private final EntryService entryService;
     private final CategoryService categoryService;
     private final EntryHasCategoryService ehcService;
+    private final AuthService authService;
 
     @GetMapping(&quot;/all&quot;)
     public ResponseEntity&lt;List&lt;Entry&gt;&gt; getAllEntries() {
-<span class="fc" id="L27">        List&lt;Entry&gt; response = null;</span>
-<span class="fc" id="L28">        response = entryService.findAllEntries();</span>
-<span class="fc" id="L29">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L34">        List&lt;Entry&gt; response = null;</span>
+<span class="nc" id="L35">        response = entryService.findAllEntries();</span>
+
+<span class="nc" id="L37">        return ResponseEntity.ok(response);</span>
     }
 
     @GetMapping(&quot;/{userId}/all&quot;)
     // TODO: Add preAuthorize when auth is finished
-    public ResponseEntity&lt;List&lt;Entry&gt;&gt; getAllEntriesFromUser(@PathVariable Long userId) {
-<span class="fc" id="L35">        List&lt;Entry&gt; response = null;</span>
-<span class="fc" id="L36">        response = entryService.findAllByCreatorId(userId);</span>
-<span class="fc" id="L37">        return ResponseEntity.ok(response);</span>
+    public ResponseEntity&lt;List&lt;Entry&gt;&gt; getAllEntriesFromUser(HttpServletRequest servletRequest, @PathVariable Long userId) {
+<span class="nc" id="L43">        ResponseEntity&lt;String&gt; verifyResponse = authService.verify(servletRequest);</span>
+
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (verifyResponse.getStatusCode() != HttpStatusCode.valueOf(200)) {</span>
+<span class="nc" id="L46">            return ResponseEntity.status(403).body(null);</span>
+        }
+
+<span class="nc" id="L49">        List&lt;Entry&gt; response = null;</span>
+<span class="nc" id="L50">        response = entryService.findAllByCreatorId(userId);</span>
+
+<span class="nc" id="L52">        return ResponseEntity.ok(response);</span>
     }
 
     @GetMapping(&quot;/{entryId}&quot;)
     public ResponseEntity&lt;Entry&gt; getEntry(@PathVariable Long entryId) {
-<span class="fc" id="L42">        Entry response = null;</span>
-<span class="fc" id="L43">        response = entryService.findById(entryId);</span>
-<span class="fc" id="L44">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L57">        Entry response = null;</span>
+<span class="nc" id="L58">        response = entryService.findById(entryId);</span>
+
+<span class="nc" id="L60">        return ResponseEntity.ok(response);</span>
     }
 
     @PostMapping(&quot;/create&quot;)
     public ResponseEntity&lt;Entry&gt; createEntry(@RequestBody EntryRequest request) {
-<span class="fc" id="L49">        Entry response = null;</span>
-<span class="fc" id="L50">        response = entryService.create(request);</span>
-<span class="fc" id="L51">        entryService.createEHC(ehcService, response, request);</span>
-<span class="fc" id="L52">        entryService.createAnalyticsEntry(response);</span>
-<span class="fc" id="L53">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L65">        Entry response = null;</span>
+        try {
+<span class="nc" id="L67">            response = entryService.create(request);</span>
+<span class="nc" id="L68">            entryService.createEHC(ehcService, response, request);</span>
+<span class="nc" id="L69">            entryService.createAnalyticsExpense(response);</span>
+<span class="nc" id="L70">            entryService.createNotification(response, &quot;create&quot;);</span>
+
+<span class="nc" id="L72">            return ResponseEntity.ok(response);</span>
+        }
+<span class="nc" id="L74">        catch (CategoryDoesNotExistException catError) {</span>
+<span class="nc" id="L75">            throw new RuntimeException(&quot;Category does not exist.&quot;);</span>
+        }
     }
 
     @PutMapping(&quot;/update/{entryId}&quot;)
     public ResponseEntity&lt;Entry&gt; updateEntry(@PathVariable Long entryId, @RequestBody EntryRequest request) {
-<span class="fc" id="L58">        Entry response = null;</span>
-<span class="fc" id="L59">        response = entryService.update(entryId, request);</span>
-<span class="fc" id="L60">        entryService.updateEHC(ehcService, response, request);</span>
-<span class="fc" id="L61">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L81">        Entry newEntry = null;</span>
+        try {
+<span class="nc" id="L83">            Entry oldEntry = entryService.findById(entryId);</span>
+
+<span class="nc" id="L85">            newEntry = entryService.update(entryId, request);</span>
+<span class="nc" id="L86">            entryService.updateEHC(ehcService, newEntry, request);</span>
+<span class="nc" id="L87">            entryService.updateAnalyticsExpense(oldEntry, newEntry);</span>
+<span class="nc" id="L88">            entryService.createNotification(newEntry, &quot;update&quot;);</span>
+
+<span class="nc" id="L90">            return ResponseEntity.ok(newEntry);</span>
+        }
+<span class="nc" id="L92">        catch (EntryDoesNotExistException entryError) {</span>
+<span class="nc" id="L93">            throw new RuntimeException(&quot;Entry does not exist.&quot;);</span>
+        }
+<span class="nc" id="L95">        catch (CategoryDoesNotExistException catError) {</span>
+<span class="nc" id="L96">            throw new RuntimeException(&quot;Category does not exist.&quot;);</span>
+        }
     }
 
     @DeleteMapping(&quot;/delete/{entryId}&quot;)
     public ResponseEntity&lt;String&gt; deleteEntry(@PathVariable Long entryId) {
-<span class="fc" id="L66">        ehcService.delete(entryId);</span>
-<span class="fc" id="L67">        entryService.delete(entryId);</span>
-<span class="fc" id="L68">        String msg = &quot;Deleted entry with id &quot; + entryId;</span>
-<span class="fc" id="L69">        return ResponseEntity.ok(msg);</span>
+        try {
+<span class="nc" id="L103">            Entry entry = entryService.findById(entryId);</span>
+
+<span class="nc" id="L105">            entryService.deleteAnalyticsExpense(entryId);</span>
+<span class="nc" id="L106">            ehcService.delete(entryId);</span>
+<span class="nc" id="L107">            entryService.delete(entryId);</span>
+<span class="nc" id="L108">            entryService.createNotificationDirectly(entry.getCreatorId(),</span>
+<span class="nc" id="L109">                    String.format(</span>
+                            &quot;%s '%s' have been %sd&quot;,
+<span class="nc" id="L111">                            entry.getEntryType().toString().toLowerCase(),</span>
+<span class="nc" id="L112">                            entry.getCategoryName().toLowerCase(),</span>
+                            &quot;delete&quot;
+                    ));
+
+<span class="nc" id="L116">            String msg = &quot;Deleted entry with id &quot; + entryId;</span>
+
+<span class="nc" id="L118">            return ResponseEntity.ok(msg);</span>
+        }
+<span class="nc" id="L120">        catch (EntryHasCategoryDoesNotExistException ehcError) {</span>
+<span class="nc" id="L121">            throw new RuntimeException(&quot;EHC does not exist.&quot;);</span>
+        }
+<span class="nc" id="L123">        catch (EntryDoesNotExistException entryError) {</span>
+<span class="nc" id="L124">            throw new RuntimeException(&quot;Entry does not exist.&quot;);</span>
+        }
     }
 
     @GetMapping(&quot;/ehc/all&quot;)
     public ResponseEntity&lt;List&lt;EntryHasCategory&gt;&gt; getAllEHC() {
-<span class="nc" id="L74">        List&lt;EntryHasCategory&gt; response = ehcService.findAllEHC();</span>
-<span class="nc" id="L75">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L130">        List&lt;EntryHasCategory&gt; response = ehcService.findAllEHC();</span>
+
+<span class="nc" id="L132">        return ResponseEntity.ok(response);</span>
     }
 
     @GetMapping(&quot;/ehc/{entryId}&quot;)
     public ResponseEntity&lt;EntryHasCategory&gt; getEHCByID(@PathVariable Long entryId) {
-<span class="nc" id="L80">        EntryHasCategory response = ehcService.findByEntryId(entryId);</span>
-<span class="nc" id="L81">        return ResponseEntity.ok(response);</span>
+<span class="nc" id="L137">        EntryHasCategory response = ehcService.findByEntryId(entryId);</span>
+
+<span class="nc" id="L139">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PostMapping(&quot;/store-jwt&quot;)
+    public ResponseEntity&lt;String&gt; storeJWT(@RequestBody String token) {
+<span class="nc" id="L144">        return authService.storeJWT(token);</span>
+    }
+
+    @PostMapping(&quot;/verify-jwt&quot;)
+    public ResponseEntity&lt;String&gt; verifyJWT(HttpServletRequest request) {
+<span class="nc" id="L149">        return authService.verify(request);</span>
     }
 }
 

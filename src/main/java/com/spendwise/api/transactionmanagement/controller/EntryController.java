@@ -6,15 +6,12 @@ import com.spendwise.api.transactionmanagement.exceptions.EntryDoesNotExistExcep
 import com.spendwise.api.transactionmanagement.exceptions.EntryHasCategoryDoesNotExistException;
 import com.spendwise.api.transactionmanagement.model.ehc.EntryHasCategory;
 import com.spendwise.api.transactionmanagement.model.entry.Entry;
-import com.spendwise.api.transactionmanagement.service.AuthService;
+import com.spendwise.api.transactionmanagement.service.auth.AuthService;
 import com.spendwise.api.transactionmanagement.service.category.CategoryService;
 import com.spendwise.api.transactionmanagement.service.ehc.EntryHasCategoryService;
 import com.spendwise.api.transactionmanagement.service.entry.EntryService;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +67,7 @@ public class EntryController {
             response = entryService.create(request);
             entryService.createEHC(ehcService, response, request);
             entryService.createAnalyticsExpense(response);
+            entryService.createNotification(response, "create");
 
             return ResponseEntity.ok(response);
         }
@@ -87,6 +85,7 @@ public class EntryController {
             newEntry = entryService.update(entryId, request);
             entryService.updateEHC(ehcService, newEntry, request);
             entryService.updateAnalyticsExpense(oldEntry, newEntry);
+            entryService.createNotification(newEntry, "update");
 
             return ResponseEntity.ok(newEntry);
         }
@@ -101,9 +100,19 @@ public class EntryController {
     @DeleteMapping("/delete/{entryId}")
     public ResponseEntity<String> deleteEntry(@PathVariable Long entryId) {
         try {
+            Entry entry = entryService.findById(entryId);
+
             entryService.deleteAnalyticsExpense(entryId);
             ehcService.delete(entryId);
             entryService.delete(entryId);
+            entryService.createNotificationDirectly(entry.getCreatorId(),
+                    String.format(
+                            "%s '%s' have been %sd",
+                            entry.getEntryType().toString().toLowerCase(),
+                            entry.getCategoryName().toLowerCase(),
+                            "delete"
+                    ));
+
             String msg = "Deleted entry with id " + entryId;
 
             return ResponseEntity.ok(msg);
@@ -130,7 +139,15 @@ public class EntryController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/store-jwt")
+    public ResponseEntity<String> storeJWT(@RequestBody String token) {
+        return authService.storeJWT(token);
+    }
 
+    @PostMapping("/verify-jwt")
+    public ResponseEntity<String> verifyJWT(HttpServletRequest request) {
+        return authService.verify(request);
+    }
 }
 
 

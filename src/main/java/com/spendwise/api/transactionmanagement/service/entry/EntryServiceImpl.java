@@ -40,7 +40,7 @@ public class EntryServiceImpl implements EntryService {
     private final RestTemplate restTemplate;
 
     private String analyticsExpenseURL = "http://localhost:8082/api/v1/analytics/expense";
-    private String analyticsIncomeURL = "http://localhost:8082/api/v1/analytics/income";
+    private String notificationsURL = "http://localhost:8084/api/v1/notifications";
 
     @Override
     public List<Entry> findAllEntries() {
@@ -205,6 +205,18 @@ public class EntryServiceImpl implements EntryService {
         return result;
     }
 
+    @Override
+    public Map<String, Object> createNotification(Entry entry, String type) {
+        String url = notificationsURL
+                + String.format("/%d/create", entry.getCreatorId());
+
+        HttpEntity<Map<String, Object>> request = buildNotificationsHttpEntry(entry, type);
+
+        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+        return request.getBody();
+    }
+
     private HttpEntity<Map<String, Object>> buildAnalyticsHttpEntity(Entry entry) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -216,6 +228,43 @@ public class EntryServiceImpl implements EntryService {
         payload.put("expenseAmount", entry.getAmount());
 
         return new HttpEntity<>(payload, headers);
+    }
+
+    private HttpEntity<Map<String, Object>> buildNotificationsHttpEntry(Entry entry, String type) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("user_id", entry.getCreatorId());
+        payload.put("type", "REGULAR");
+        payload.put("message", String.format(
+                "%s '%s' have been %sd",
+                entry.getEntryType().toString().toLowerCase(),
+                entry.getTitle().toLowerCase(),
+                type
+                ));
+
+        return new HttpEntity<>(payload, headers);
+    }
+
+    @Override
+    public Map<String, Object> createNotificationDirectly(Long uid, String message) {
+        String url = notificationsURL
+                + String.format("/%d/create", uid);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("user_id", uid);
+        payload.put("type", "REGULAR");
+        payload.put("message", message);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+        return request.getBody();
     }
 
     private boolean isCategoryExists(Entry entry) {
