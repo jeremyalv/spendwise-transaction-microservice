@@ -21,10 +21,3 @@ Running PostgreSQL instance with Docker:
 Stopping PostgreSQL instance with Docker:  
 ` runas /user:administrator docker stop transaction_management_db`
 
-### Todo
-- [ ] Hide db keys from repo using Jasypt: https://www.north-47.com/spring-boot-password-encryption-with-jasypt/ && https://medium.com/developervisits/hiding-encrypting-database-password-in-the-application-properties-34d59fe104eb
-- [ ] Category should be pre-decided into a `Category` table, but for now we'll use raw strings as Catgory identifier
-- [ ] Error handling, bad request etc (refer tutorial 5)
-  - [ ] Get all entry from a nonexistent user
-- [ ] Create unit tests
-
